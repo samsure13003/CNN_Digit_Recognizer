@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CNN Digit Recognizer</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #0f172a;
+      color: white;
+    }
+
+    canvas {
+      border: 2px solid white;
+      background: black;
+      cursor: crosshair;
+    }
+
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+
+    #result {
+      font-size: 30px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1> CNN Digit Recognizer</h1>
+
+<canvas id="canvas" width="280" height="280"></canvas><br>
+
+<button onclick="clearCanvas()">Clear</button>
+<button onclick="predict()">Predict</button>
+
+<div id="result"></div>
+
+<script>
+console.log("JS LOADED");
+
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+
+ctx.fillStyle = "black";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+let drawing = false;
+
+canvas.addEventListener("mousedown", () => drawing = true);
+canvas.addEventListener("mouseup", () => drawing = false);
+canvas.addEventListener("mousemove", draw);
+
+function draw(e) {
+    if (!drawing) return;
+
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(e.offsetX, e.offsetY, 10, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function clearCanvas() {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function predict() {
+    console.log("CLICK WORKING ✅");
+
+    let image = canvas.toDataURL("image/png");
+
+    fetch("http://127.0.0.1:5000/predict", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({image: image})
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log(data);
+
+        document.getElementById("result").innerHTML =
+            "Prediction: " + data.digit +
+            "<br>Confidence: " + (data.confidence * 100).toFixed(2) + "%";
+    })
+    .catch(err => console.error("ERROR:", err));
+}
+</script>
+
+</body>
+</html>
